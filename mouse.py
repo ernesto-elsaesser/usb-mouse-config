@@ -1,12 +1,11 @@
 import usb.core
 import usb.util
 
-HOLTEK_ID = 0x04d9
+VENDOR_ID = 0x04d9  # Holtek
 
 INTERFACE = 2
 
-REPORT16 = 0x0302  # Feature Report (0x03), Report ID 0x02 with 16 byte payload
-REPORT64 = 0x0303  # Feature Report (0x03), Report ID 0x03 with 64 byte payload
+# HID custom feature report constants
 
 SET_REQUEST_TYPE = usb.util.CTRL_OUT | usb.util.CTRL_TYPE_CLASS | usb.util.CTRL_RECIPIENT_INTERFACE  # 0x21
 SET_REPORT = 0x09
@@ -14,9 +13,20 @@ SET_REPORT = 0x09
 GET_REQUEST_TYPE = usb.util.CTRL_IN | usb.util.CTRL_TYPE_CLASS | usb.util.CTRL_RECIPIENT_INTERFACE  # 0xA1
 GET_REPORT = 0x01
 
+FEATURE_REPORT = 0x0300
+LEN_16B = 0x02  # 16 byte payloads
+LEN_64B = 0x03  # 64 byte payloads
+REPORT_16B = FEATURE_REPORT | LEN_16B
+REPORT_64B = FEATURE_REPORT | LEN_64B
+
+# TODO: 0xf1?
+OP_SEEK = 0xf2
+OP_WRITE = 0xf3
+OP_LOCK = 0xf5
+
 TIMEOUT = 1000  # 1 second
 
-# memory addresses
+# mouse memory addresses
 
 SCROLL = (0x20, 0)
 ACTIVE = (0x2c, 0)
@@ -40,41 +50,14 @@ EFFECTS = [
     (0x69, 4),
 ]
 
-# model specific
-
-M811_BUTTONS = [
-    "left",
-    "right",
-    "middle",
-    "btn4",
-    "btn5",
-    "dpiup",
-    "dpidown",
-    "mode",
-    "num1",
-    "num2",
-    "num3",
-    "num4",
-    "num5",
-    "num6",
-    "num7",
-    "num8",
-]
-
-M811_ID = 0xfc6d
-
 
 class Mouse:
 
-    def __init__(self, product_id: int, buttons: list[str]) -> None:
-
-        results = usb.core.find(idVendor=HOLTEK_ID, idProduct=product_id)
+    def __init__(self, product_id: int) -> None:
+        results = usb.core.find(idVendor=VENDOR_ID, idProduct=product_id)
         if not isinstance(results, usb.core.Device):
             raise Exception
         self.dev = results
-
-        self.buttons = buttons
-
         self.was_active = self.dev.is_kernel_driver_active(INTERFACE)
         if self.was_active:
             self.dev.detach_kernel_driver(INTERFACE)
@@ -84,87 +67,110 @@ class Mouse:
             self.dev.attach_kernel_driver(INTERFACE)
 
     def get_active_profile(self) -> int:
-        r = self.read16(ACTIVE, 1)
-        return int(r[0])
+        self._unlock()
+        data = self._read16(ACTIVE, 1)
+        self._lock()
+        return data[0]
 
     def get_poll_rates(self) -> list[int]:
         # 8 = 125Hz, 4=250Hz, 2=500Hz, 1=1000Hz
-        r = self.read64(POLLRATE, 10)
-        return [r[i] for i in range(0, 10, 2)]
+        self._unlock()
+        data = self._read64(POLLRATE, 10)
+        self._lock()
+        return [data[i] for i in range(0, 10, 2)]
 
-    def get_effects(self, profile: int) -> dict:
-        r = self.read16(EFFECTS[profile], 7)
-        return {
-            "color": r[:3],
-            "lightmode": r[3:5],
-            "speed": r[5],
-            "brightness": r[6],
-        }
+    def get_effects(self, profile: int) -> list[int]:
+        self._unlock()
+        effects = self._read16(EFFECTS[profile], 7)
+        self._lock()
+        # R, G, B, lightmode_low, speed, lightmode_high, brightness
+        return effects
+
+    def set_effects(self, profile: int, effects: list[int]) -> None:
+        self._unlock()
+        self._write16(EFFECTS[profile], 7, *effects)
+        self._lock()
     
-    def get_keymap(self, profile: int) -> dict[str, tuple]:
-        # 0x90 0 key 0 = single key
-        # 0x8f mod key 0 = combo key (ctrl = 1, shift = 2)
-        mapping = {}
-        for i, btn in enumerate(self.buttons):
-            r = self.read16(KEYMAPS[profile][i], 4)
-            mapping[btn] = tuple(r)
-        return mapping
+    def get_keymap(self, profile: int, size: int) -> list[list[int]]:
+        addrs = KEYMAPS[profile]
+        self._unlock()
+        codes = [self._read16(addrs[i], 4) for i in range(size)]
+        self._lock()
+        return codes
+    
+    def print_keymap(self, profile: int, size: int) -> None:
+        codes = self.get_keymap(profile, size)
+        for i, code in enumerate(codes):
+            print(f"{i:02} - 0x{code[0]:02x} 0x{code[1]:02x} 0x{code[2]:02x}")
 
-    def map_key(self, profile: int, button: str, code: tuple) -> None:
-        assert button in self.buttons
-        idx = self.buttons.index(button)
-        addr = KEYMAPS[profile][idx]
-        self.write16(addr, 4, *code)
+    def set_keymap(self, profile: int, codes: list[list[int]]) -> None:
+        addrs = KEYMAPS[profile]
+        self._unlock()
+        for addr, code in zip(addrs, codes):
+            self._write16(addr, 4, *code)
+        self._lock()
 
-    def get_dpis(self, profile: int) -> list[tuple]:
-        r = self.read64(DPIS[profile], 32)
-        # first two bytes skipped, then 5 levels with:
-        # (enabled, level low, level high)
-        return [tuple(r[i:i+3]) for i in range(2, 32, 6)]
+    def get_dpis(self, profile: int) -> list[list]:
+        self._unlock()
+        dpi_codes = self._read64(DPIS[profile], 32)
+        self._lock()
+        # first two bytes skipped, unused
+        levels = [dpi_codes[i+1:i+3] for i in range(2, 32, 6)
+                  if dpi_codes[i] == 1]
+        return levels
 
-    def set_dpis(self, profile: int, levels: list[tuple]) -> None:
-        low, high = DPIS[profile]
-        for i, data in enumerate(levels):
-            addr = low + 2 + (6 * i), high
-            self.write16(addr, 4, *data)
+    def set_dpis(self, profile: int, levels: list[list]) -> None:
+        dpi_codes = [[1, l, h] for l, h in levels]
+        while len(dpi_codes) < 5:
+            dpi_codes.append([0, 0, 0])
+        addr = DPIS[profile]
+        self._unlock()
+        for i, data in enumerate(dpi_codes):
+            level_addr = addr[0] + 2 + (6 * i), addr[1]
+            self._write16(level_addr, 4, *data)
+        self._lock()
 
     def get_scroll_speeds(self) -> list[int]:
-        r = self.read64(SCROLL, 10)
-        return [r[i] for i in range(0, 10, 2)]
+        self._unlock()
+        data = self._read64(SCROLL, 10)
+        self._lock()
+        return [data[i] for i in range(0, 10, 2)]
 
-    def set_scroll_speeds(self, speeds: tuple) -> None:
+    def set_scroll_speeds(self, speeds: list[int]) -> None:
         data = [0] * 10
         for i, speed in enumerate(speeds):
             data[i * 2] = speed
-        self.write64(SCROLL, 10, *speeds)
+        self._unlock()
+        self._write64(SCROLL, 10, *speeds)
+        self._lock()
 
-    def unlock(self) -> None:
-        self._set(REPORT16, [0x02, 0xf5, 0x00] + ([0x00] * 13))
+    def _read16(self, addr: tuple[int, int], n: int) -> list[int]:
+        self._set(REPORT_16B, [LEN_16B, OP_SEEK, *addr, n], 16)
+        return self._get(REPORT_16B, 16)
 
-    def lock(self) -> None:
-        self._set(REPORT16, [0x02, 0xf5, 0x01] + ([0x00] * 13))
+    def _read64(self, addr: tuple[int, int], n: int) -> list[int]:
+        self._set(REPORT_64B, [LEN_64B, OP_SEEK, *addr, n], 64)
+        return self._get(REPORT_64B, 64)
 
-    def read16(self, addr: tuple[int, int], n: int):
-        self._set(REPORT16, [0x02, 0xf2, *addr, n] + ([0] * 11))
-        return self._get(REPORT16, 16)[8:]
+    def _write16(self, addr: tuple[int, int], n: int, *args):
+        self._set(REPORT_16B, [LEN_16B, OP_WRITE, *addr, n, 0, 0, 0, *args], 16)
 
-    def read64(self, addr: tuple[int, int], n: int):
-        self._set(REPORT64, [0x03, 0xf2, *addr, n] + ([0] * 59))
-        return self._get(REPORT64, 64)[8:]
+    def _write64(self, addr: tuple[int, int], n: int, *args):
+        self._set(REPORT_64B, [LEN_64B, OP_WRITE, *addr, n, 0, 0, 0, *args], 64)
 
-    def write16(self, addr: tuple[int, int], n: int, *args):
-        self._set(REPORT16, [0x02, 0xf3, *addr, n, 0, 0, 0, *args] + ([0] * (8 - len(args))))
+    def _unlock(self) -> None:
+        self._set(REPORT_16B, [LEN_16B, OP_LOCK, 0], 16)
 
-    def write64(self, addr: tuple[int, int], n: int, *args):
-        self._set(REPORT64, [0x03, 0xf3, *addr, n, 0, 0, 0, *args] + ([0] * (56 - len(args))))
+    def _lock(self) -> None:
+        self._set(REPORT_16B, [LEN_16B, OP_LOCK, 1], 16)
 
-    # TODO: 0xf1 function??
+    def _set(self, report: int, msg: list[int], length: int):
+        pad = [0] * (length - len(msg))
+        data = bytearray(msg + pad)
+        sent = self.dev.ctrl_transfer(SET_REQUEST_TYPE, SET_REPORT, report, INTERFACE, data, TIMEOUT)
+        assert sent == length
 
-    def _set(self, report: int, msg: list[int]):
-        sent = self.dev.ctrl_transfer(SET_REQUEST_TYPE, SET_REPORT, report, INTERFACE, bytearray(msg), TIMEOUT)
-        assert sent == len(msg)
-
-    def _get(self, report: int, length: int) -> list:
+    def _get(self, report: int, length: int) -> list[int]:
         data = self.dev.ctrl_transfer(GET_REQUEST_TYPE, GET_REPORT, report, INTERFACE, length, TIMEOUT)
-        return list(data)
+        return list(data[8:])
     
