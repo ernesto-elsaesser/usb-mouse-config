@@ -13,9 +13,9 @@ front_codes = [
     [0x83, 0, 0],  # button3 = middle
     [0x90, 0, 0x2a],  # button 4 = single key: backspace
     [0x90, 0, 0x28],  # button 5 = single key: return
-    [0x8f, 1, 0x1c],  # dpi up = key combo: ctrl + y
-    [0x88, 0, 0],  # dpi down = dpi cycle
-    [0x8d, 0, 0],  # mode = profile switch
+    [0x8f, 1, 0x1c],  # DPI up = key combo: ctrl + y
+    [0x88, 0, 0],  # DPI down = cycle DPIs
+    [0x8d, 0, 0],  # mode switch = cycle profiles
 ]
 
 side_codes0 = [
@@ -58,7 +58,7 @@ dpi_levels = [
 m.set_dpis(0, dpi_levels)
 m.set_dpis(1, dpi_levels)
 
-# effects
+# LED effects
 
 effects = [0, 0, 255, 0, 0, 0, 1]  # red, no effects
 
