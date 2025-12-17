@@ -10,6 +10,8 @@ It's only dependency is [pyusb](https://github.com/pyusb/pyusb).
 To configure a Redragon gaming mouse, create an instance of that class
 with the correct Bluetooth product identifier (see [Product IDs](#product-ids)):
 
+> NOTE: The python script or REPL needs to be run as root!
+
 ```python
 from mouse import Mouse
 
@@ -46,7 +48,13 @@ key_codes = [
 a811.set_keymap(profile, key_codes)
 ```
 
-The number and order of mappable button depends on the mouse model.
+The number and order of mappable buttons depends on the mouse model.
+You can retrieve the current mapping and compare key codes to figure out
+which slot represents which button:
+
+```python
+a811.print_keymap(profile, 16)  # adjust button count for your device
+```
 
 For a list of common key codes, see [Key Codes](#key-codes).
 For a list of DPI codes, see [DPI Codes](#dpi-codes).
