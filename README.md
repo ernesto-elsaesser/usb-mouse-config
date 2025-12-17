@@ -8,10 +8,12 @@ The Python module [mouse.py](mouse.py) contains a single class `Mouse`.
 It's only dependency is [pyusb](https://github.com/pyusb/pyusb).
 
 To configure a Redragon gaming mouse, create an instance of that class
-with the correct Bluetooth product identifier:
+with the correct Bluetooth product identifier (see [Product IDs](#product-ids)):
 
 ```python
-a811 = mouse.Mouse(0xfc6d)
+from mouse import Mouse
+
+a811 = Mouse(0xfc6d)
 ```
 
 This object can be used to read and write the mouse configuration (light
@@ -50,6 +52,42 @@ For a list of common key codes, see [Key Codes](#key-codes).
 For a list of DPI codes, see [DPI Codes](#dpi-codes).
 
 For a full example, see [remap.py](remap.py) (my personal configuration script).
+
+## Product IDs
+
+Below is a list of some Redragon USB mouse product IDs.
+
+You can find the product ID of a connected mouse via `lsusb` (on Linux). The 4
+digits before the semicolon should be the Holtek Semiconductor vendor ID (04d9),
+the 4 digits behind the semicolon are the product ID used to instantiate the
+`mouse.Mouse` object.
+
+**PLEASE NOTE THAT THE TOOL WAS NEVER TESTED ON MOST OF THESE MODELS!**
+**DOUBLE CHECK THE IDS FOR YOUR DEVIEC AND USE AT YOUR OWN RISK**
+
+| Model | Product ID |
+| --- | --- |
+| M901 | fc02 |
+| M990 | fc0f |
+| M709 | fc2a |
+| M702 | fc2f |
+| M711 | fc30 |
+| M602 (RGB) | fc38 |
+| M607 | fc38 |
+| M715 | fc39 |
+| M921 (RGB) | fc40 |
+| M990 (RGB) | fc41 |
+| M909 | fc42 |
+| M802 | fc42 |
+| M910 | fc49 |
+| M908 | fc4d |
+| M719 | fc4f |
+| M721 | fc5c |
+| Venus | fc55 |
+| M801 (RGB) | fc56 |
+| M808 | fc5f |
+| M612 | fc61 |
+| M811 | fc6d |
 
 ## Key Codes
 
