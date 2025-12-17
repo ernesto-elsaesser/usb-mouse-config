@@ -66,7 +66,6 @@ class Mouse:
         return data[0]
 
     def get_poll_rates(self) -> list[int]:
-        # 8 = 125Hz, 4=250Hz, 2=500Hz, 1=1000Hz
         self._unlock()
         data = self._read64(ADR_POLLRATE, 10)
         self._lock()

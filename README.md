@@ -55,7 +55,9 @@ a811.print_keymap(profile, 16)  # adjust button count for your device
 ```
 
 For a list of common key codes, see [Key Codes](#key-codes).
+
 For a list of DPI codes, see [DPI Codes](#dpi-codes).
+
 For a list of poll rate values, see [Poll Rates](#poll-rates).
 
 For a full example, see [remap.py](remap.py) (my personal configuration script).
