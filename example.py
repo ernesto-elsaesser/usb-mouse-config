@@ -1,5 +1,3 @@
-# NOTE: requires root!
-
 import mouse
 
 

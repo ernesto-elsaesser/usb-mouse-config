@@ -60,7 +60,7 @@ For a list of DPI codes, see [DPI Codes](#dpi-codes).
 
 For a list of poll rate values, see [Poll Rates](#poll-rates).
 
-For a full example, see [remap.py](remap.py) (my personal configuration script).
+For a full example, see [example.py](example.py) (my personal configuration script).
 
 ## Product IDs
 
