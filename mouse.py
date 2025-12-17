@@ -72,6 +72,12 @@ class Mouse:
         self._lock()
         return [data[i] for i in range(0, 10, 2)]
 
+    def set_poll_rates(self, rates: list[int]) -> None:
+        gapped = [v for r in rates for v in (r, 0)]
+        self._unlock()
+        self._write64(ADR_POLLRATE, 10, *gapped)
+        self._lock()
+
     def get_effects(self, profile: int) -> list[int]:
         self._unlock()
         effects = self._read16(ADR_EFFECTS[profile], 7)
@@ -130,11 +136,9 @@ class Mouse:
         return [data[i] for i in range(0, 10, 2)]
 
     def set_scroll_speeds(self, speeds: list[int]) -> None:
-        data = [0] * 10
-        for i, speed in enumerate(speeds):
-            data[i * 2] = speed
+        gapped = [v for s in speeds for v in (s, 0)]
         self._unlock()
-        self._write64(ADR_SCROLL, 10, *speeds)
+        self._write64(ADR_SCROLL, 10, *gapped)
         self._lock()
 
     def _read16(self, addr: tuple[int, int], n: int) -> list[int]:

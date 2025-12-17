@@ -95,6 +95,15 @@ the 4 digits behind the semicolon are the product ID used to instantiate the
 | M612 | fc61 |
 | M811 | fc6d |
 
+## Poll Rates
+
+```python
+poll_1000hz = 1
+poll_500hz = 2
+poll_250hz = 4
+poll_125hz = 8
+```
+
 ## Key Codes
 
 For a complete list see: [dokutan/mouse_m908/blob/master/include/data.cpp](https://github.com/dokutan/mouse_m908/blob/master/include/data.cpp)

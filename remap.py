@@ -5,6 +5,8 @@ import mouse
 
 m = mouse.Mouse(0xfc6d)  # Redragon M811 Aatrox
 
+m.set_poll_rates([1, 1, 1, 1, 1])  # max poll rate (1000Hz)
+
 # keymaps
 
 front_codes = [
