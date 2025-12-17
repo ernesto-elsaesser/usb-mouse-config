@@ -56,6 +56,7 @@ a811.print_keymap(profile, 16)  # adjust button count for your device
 
 For a list of common key codes, see [Key Codes](#key-codes).
 For a list of DPI codes, see [DPI Codes](#dpi-codes).
+For a list of poll rate values, see [Poll Rates](#poll-rates).
 
 For a full example, see [remap.py](remap.py) (my personal configuration script).
 
@@ -94,15 +95,6 @@ the 4 digits behind the semicolon are the product ID used to instantiate the
 | M808 | fc5f |
 | M612 | fc61 |
 | M811 | fc6d |
-
-## Poll Rates
-
-```python
-poll_1000hz = 1
-poll_500hz = 2
-poll_250hz = 4
-poll_125hz = 8
-```
 
 ## Key Codes
 
@@ -269,6 +261,15 @@ key_f12 = 0x45
 key_prtsc = 0x46
 key_scrlk = 0x47
 key_pause = 0x48
+```
+
+## Poll Rates
+
+```python
+poll_1000hz = 1
+poll_500hz = 2
+poll_250hz = 4
+poll_125hz = 8
 ```
 
 ## DPI Codes
