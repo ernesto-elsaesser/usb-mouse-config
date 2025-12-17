@@ -10,8 +10,6 @@ It's only dependency is [pyusb](https://github.com/pyusb/pyusb).
 To configure a Redragon gaming mouse, create an instance of that class
 with the correct Bluetooth product identifier (see [Product IDs](#product-ids)):
 
-> NOTE: The python script or REPL needs to be run as root!
-
 ```python
 from mouse import Mouse
 

@@ -56,15 +56,8 @@ class Mouse:
     def __init__(self, product_id: int) -> None:
         results = usb.core.find(idVendor=VENDOR_ID, idProduct=product_id)
         if not isinstance(results, usb.core.Device):
-            raise Exception
-        self.dev = results
-        self.was_active = self.dev.is_kernel_driver_active(INTERFACE)
-        if self.was_active:
-            self.dev.detach_kernel_driver(INTERFACE)
-
-    def close(self) -> None:
-        if self.was_active:
-            self.dev.attach_kernel_driver(INTERFACE)
+            raise AttributeError(f"No USB device with ID {VENDOR_ID:04x}:{product_id:04x}")
+        self.dev: usb.core.Device = results
 
     def get_active_profile(self) -> int:
         self._unlock()
