@@ -63,6 +63,7 @@ the 4 digits behind the semicolon are the product ID used to instantiate the
 `mouse.Mouse` object.
 
 **PLEASE NOTE THAT THE TOOL WAS NEVER TESTED ON MOST OF THESE MODELS!**
+
 **DOUBLE CHECK THE IDS FOR YOUR DEVIEC AND USE AT YOUR OWN RISK**
 
 | Model | Product ID |
@@ -83,7 +84,6 @@ the 4 digits behind the semicolon are the product ID used to instantiate the
 | M908 | fc4d |
 | M719 | fc4f |
 | M721 | fc5c |
-| Venus | fc55 |
 | M801 (RGB) | fc56 |
 | M808 | fc5f |
 | M612 | fc61 |
