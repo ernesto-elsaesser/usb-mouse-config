@@ -25,13 +25,13 @@ For example, to remap the keys:
 ```python
 profile = 0
 key_codes = [
-    [0x81, 0, 0],  # button1 = left
-    [0x82, 0, 0],  # button2 = right
-    [0x83, 0, 0],  # button3 = middle
+    [0x81, 0, 0],  # button 1 = left
+    [0x82, 0, 0],  # button 2 = right
+    [0x83, 0, 0],  # button3  = middle
     [0x90, 0, 0x2a],  # button 4 = single key: backspace
     [0x90, 0, 0x28],  # button 5 = single key: return
-    [0x8f, 1, 0x1c],  # DPI up = key combo: ctrl + y
-    [0x88, 0, 0],  # DPI down = cycle DPIs
+    [0x8f, 1, 0x1c],  # DPI + = key combo: ctrl + y
+    [0x88, 0, 0],  # DPI - = cycle DPIs
     [0x8d, 0, 0],  # mode switch = cycle profiles
     [0x90, 0, 0x1e],  # num 1 = 1
     [0x90, 0, 0x1f],  # num 2 = 2
