@@ -95,7 +95,7 @@ For a complete list see: [dokutan/mouse_m908/blob/master/include/data.cpp](https
 
 ### Predefined Key Codes
 
-The `key_custom` key code allow sending any key or key combination. For possible
+The `key_code_custom` key code allow sending any key or key combination. For possible
 values for `MODIFIER` and `KEY`, see the tables below.
 
 ```python
